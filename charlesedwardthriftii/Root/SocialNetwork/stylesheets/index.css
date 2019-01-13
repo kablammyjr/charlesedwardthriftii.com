@@ -1,0 +1,16 @@
+#postSenderName {
+    margin: auto 10px;
+}
+
+#postSenderName a {
+    color:blue;
+}
+
+#postBodyText {
+    color:black;
+    margin: auto 10px;
+}
+
+#commentText {
+    color: black;
+}

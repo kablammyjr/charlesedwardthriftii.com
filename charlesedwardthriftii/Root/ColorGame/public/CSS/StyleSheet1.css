@@ -1,0 +1,106 @@
+﻿body {
+    background: black;
+}
+
+#scoretext {
+    text-align: center;
+    color: yellow;
+    font-size: 45px;
+    margin-top: 0px;
+}
+
+#difficultyDropDown {  
+    text-align: center;
+    margin: 0 auto;
+    width: 50%;
+}
+
+#highScoreText {
+    margin-left: 10%;
+    color: white;
+    display:inline-block;
+}
+
+#highScore {
+    color: yellow;
+    display:inline-block;
+}
+
+#bestScoreText {
+    margin-left: 5%;
+    color: white;
+    display:inline-block;
+}
+
+#yourBestScore {
+    color: yellow;
+    display:inline-block;
+}
+
+#chosenColorText {
+    text-align: center;
+    font-size: 35px;
+    color: lightgrey;
+}
+
+#red {
+    color: red;
+}
+
+#green {
+    color: green;
+}
+
+#blue {
+    color: blue;
+}
+
+#feedback {
+    text-align: center;
+    color: #85dee4;
+}
+
+#resetButton {
+    float: left;
+    margin-left: 20%;
+    width: 15%;
+    padding-bottom: 0.5%;
+    padding-top: 0.5%;
+    background: black;
+    color: white;
+    border-color: red;
+    font-size: 30px;
+}
+
+#nextButton {
+    float: right;
+    margin-right: 20%;
+    width: 15%;
+    padding-bottom: 0.5%;
+    padding-top: 0.5%;
+    background-color: black;
+    color: grey;
+    border-color: limegreen;
+    font-size: 30px;
+}
+
+#topContainer {
+   margin-bottom: 120px;
+}
+
+#squaresContainer {
+    margin: 5% 2%;
+    margin-left: 5%;
+    max-width: 10000px;
+}
+
+.square {
+    width: 10%;
+    background: black;
+    padding-bottom: 10%;
+    float: left;
+    margin: 1% 0.5%;
+    margin-left: 1%;
+    border: solid;
+    border-color: white;
+}

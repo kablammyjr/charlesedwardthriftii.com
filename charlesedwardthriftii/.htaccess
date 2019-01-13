@@ -1,0 +1,30 @@
+
+DirectoryIndex Root/SocialNetwork/index.php
+
+RewriteEngine On
+
+RewriteCond %{SERVER_PORT} 80
+
+RewriteRule ^(.*)$ https://www.charlesedwardthriftii.com/$1 [R=301,L]
+
+
+RewriteRule ^colorgame?$ Root/ColorGame/colorgame.php
+RewriteRule ^resume?$ Root/resume.php
+
+RewriteRule ^createaccount?$ Root/SocialNetwork/create-account.php
+RewriteRule ^changepassword?$ Root/SocialNetwork/change-password.php
+RewriteRule ^forgotpassword?$ Root/SocialNetwork/forgot-password.php
+
+RewriteRule ^login?$ Root/SocialNetwork/login.php
+RewriteRule ^logout?$ Root/SocialNetwork/logout.php
+RewriteRule ^myaccount?$ Root/SocialNetwork/my-account.php
+RewriteRule ^notifications?$ Root/SocialNetwork/notify.php
+RewriteRule ^sendmessage?$ Root/SocialNetwork/send-message.php
+RewriteRule ^messages?$ Root/SocialNetwork/my-messages.php
+
+RewriteRule ^profile?$ Root/SocialNetwork/profile.php
+RewriteRule ^index?$ Root/SocialNetwork/index.php
+
+RewriteRule ^socialnetwork?$ Root/SocialNetwork/index.php
+RewriteRule ^search?$ Root/SocialNetwork/search-results.php
+
