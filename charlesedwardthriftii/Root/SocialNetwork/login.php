@@ -45,13 +45,15 @@ HeaderFooter::getHeader("Login");
 Navbar::displayNavbar();
 ?>
 
-<div class='container'>
+<div class='container text-success'>
     <h1>Login to your account</h1>
     <form action="/login" method="post">
     <input type="text" name="username" id="username" value="" placeholder="Username..."><p></p>
     <input type="password" name="password" id="password" value="" placeholder="Password..."><p></p>
     <input type="submit" name="login" id="login" value="Login">
     </form>
+    <h5>Don't have an account?</h5>
+    <h5><a href="/createaccount">Create Account</a></h5>
 </div>
 
 <?php

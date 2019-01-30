@@ -28,6 +28,7 @@ if (isset($_POST['createaccount'])) {
                     if (!DB::query('SELECT email FROM users WHERE email=:email', array(':email'=>$email))) {
 
                     DB::query('INSERT INTO users VALUES (\'\', :username, :password, :email, \'0\', \'\')', array(':username'=>$username, ':password'=>password_hash($password, PASSWORD_BCRYPT), ':email'=>$email));
+                    
                     Mail::sendMail('Welcome to the world of Ed boy!', 'Your Ed boy account is as ready as ever to be used to log in to Ed boy\'s website palooza!', $email);
                     
                     $ps = new PageSwitch();
@@ -61,12 +62,12 @@ if (isset($_POST['createaccount'])) {
 ?>
 
 <div class="container">
-<h1>Register</h1>
+<h1 class="text-success">Create an Account</h1>
 <form action="/createaccount" method="post">
 <input type="text" name="username" id="username" value="" placeholder="Username..."><p></p>
 <input type="email" name="email" id="email" value="" placeholder="Email..."><p></p>
 <input type="password" name="password" id="password" value="" placeholder="Password..."><p></p>
-<input type="button" name="createaccount" id="ca" value="Create Account">
+<input type="submit" name="createaccount" id="ca" value="Create Account">
 </form>
 </div>
 <?php

@@ -20,7 +20,8 @@ RewriteRule ^logout?$ Root/SocialNetwork/logout.php
 RewriteRule ^myaccount?$ Root/SocialNetwork/my-account.php
 RewriteRule ^notifications?$ Root/SocialNetwork/notify.php
 RewriteRule ^sendmessage?$ Root/SocialNetwork/send-message.php
-RewriteRule ^messages?$ Root/SocialNetwork/my-messages.php
+RewriteRule ^mymessages?$ Root/SocialNetwork/my-messages.php
+RewriteRule ^messages?$ Root/SocialNetwork/messages.php
 
 RewriteRule ^profile?$ Root/SocialNetwork/profile.php
 RewriteRule ^index?$ Root/SocialNetwork/index.php

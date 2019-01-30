@@ -1,0 +1,9 @@
+.modal-title {
+    font-size: 25px;
+}
+
+.postimg {
+    opacity: 0;
+    transition: all 2s ease-out;
+    width: 100%;
+}

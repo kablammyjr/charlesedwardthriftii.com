@@ -5,10 +5,6 @@ include('classes/PageSwitch.php');
 include('classes/Navbar.php');
 include('classes/HeaderFooter.php');
 
-HeaderFooter::getHeader("Logout");
-
-Navbar::displayNavbar();
-
 
 if (!Login::isLoggedIn()) {
     die("Not logged in");
@@ -30,16 +26,20 @@ if (isset($_POST['confirm'])) {
     $ps = new PageSwitch();
     $ps->changePage('/login');
     die();
-    
 }
-?>
 
-<h1>Logout of your account</h1>
-<p>Are you sure you want to logout?</p>
-<form action="/logout" method="post">
-    <input type="checkbox" name="alldevices" value="alldevices"> Logout of all devices? <br />
-    <input type="submit" name="confirm" value="Confirm">
-</form>
+HeaderFooter::getHeader("Logout");
+
+Navbar::displayNavbar();
+?>
+<div class="container text-success">
+    <h1>Logout of your account</h1>
+    <p>Are you sure you want to logout?</p>
+    <form action="/logout" method="post">
+        <input type="checkbox" name="alldevices" value="alldevices"> Logout of all devices? <br />
+        <input type="submit" name="confirm" value="Confirm">
+    </form>
+</div>
 
 <?php
 

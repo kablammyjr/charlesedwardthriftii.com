@@ -6,33 +6,175 @@ $db = new DB('fakehost', 'fakedb', 'fakeuser', 'fakepw');
 
 if ($_SERVER['REQUEST_METHOD'] == "GET") {
     
-    if ($_GET['url'] == "auth") {
+    if ($_GET['url'] == "musers") {
         
+        $token = $_COOKIE['SNID'];
+        $userid = $db->query('SELECT user_id FROM login_tokens WHERE token=:token', array(':token'=>sha1($token)))[0]['user_id'];
+
+        $users = $db->query("SELECT DISTINCT s.username AS Sender, r.username AS Receiver, s.id AS SenderID, r.id AS ReceiverID FROM messages LEFT JOIN users s ON s.id = messages.sender LEFT JOIN users r ON r.id = messages.receiver WHERE (s.id = :userid OR r.id=:userid)", array(":userid"=>$userid));
+
+        $u= array();
+        foreach($users as $user) {
+            if (!in_array(array('username'=>$user['Receiver'], 'id'=>$user['ReceiverID']), $u)) {
+                array_push($u, array('username'=>$user['Receiver'], 'id'=>$user['ReceiverID']));
+            }
+            if (!in_array(array('username'=>$user['Sender'], 'id'=>$user['SenderID']), $u)) {
+                array_push($u, array('username'=>$user['Sender'], 'id'=>$user['SenderID']));
+            }
+        }
+        echo json_encode($u);
+
+                                    /////////////// MESSAGES ///////////////////
+    } else if ($_GET['url'] == "messages") {
+
+        $token = $_COOKIE['SNID'];
+        
+        $sender = $_GET['sender'];
+        $receiver = $db->query('SELECT user_id FROM login_tokens WHERE token=:token', array(':token'=>sha1($token)))[0]['user_id'];
+
+        $messages = $db->query('SELECT messages.id, messages.body, s.username AS Sender, r.username AS Receiver
+        FROM messages
+        LEFT JOIN users s ON messages.sender = s.id
+        LEFT JOIN users r ON messages.receiver = r.id
+        WHERE (r.id=:r AND s.id=:s) OR r.id=:s AND s.id=:r', array(':r'=>$receiver, ':s'=>$sender));
+
+        echo json_encode($messages);
+
+                                    /////////////////// SEARCH /////////////////
+    } else if ($_GET['url'] == "search") {
+
+        $tosearch = explode(" ", $_GET['query']);
+        if (count($tosearch) == 1) {
+                $tosearch = str_split($tosearch[0], 2);
+        }
+        $whereclause = "";
+        $paramsarray = array(':body'=>'%'.$_GET['query'].'%');
+        for ($i = 0; $i < count($tosearch); $i++) {
+            if ($i % 2) {
+            $whereclause .= " OR body LIKE :p$i ";
+            $paramsarray[":p$i"] = $tosearch[$i];
+            }
+        }
+        $posts = $db->query('SELECT posts.id, posts.body, users.username, posts.posted_at FROM posts, users WHERE users.id = posts.user_id AND posts.body LIKE :body '.$whereclause.' LIMIT 10', $paramsarray);
+        
+        echo json_encode($posts);
+
+                                    ////////////////// USERS /////////////////////
     } else if ($_GET['url'] == "users") {
+        
+        $token = $_COOKIE['SNID'];
+        $user_id = $db->query('SELECT user_id FROM login_tokens WHERE token=:token', array(':token'=>sha1($token)))[0]['user_id'];
+        $username = $db->query('SELECT username FROM users WHERE id=:uid', array(':uid'=>$user_id))[0]['username'];
+        echo $username;
 
+                                    //////////////// COMMENTS //////////////////////
+    
+    } else if ($_GET['url'] == "comments" && isset($_GET['postid'])) {  
+        $output = "";
+        $comments = $db->query('SELECT comments.comment, users.username FROM comments, users WHERE post_id = :postid AND comments.user_id = users.id', array(':postid'=>$_GET['postid']));
+        $output .= "[";
 
+        foreach($comments as $comment) {
+            $output .= "{";
+            $output .= '"Comment": "'.$comment['comment'].'",';
+            $output .= '"CommentedBy": "'.$comment['username'].'"';
+            $output .= "},";    
+        }
+        $output = substr($output, 0, strlen($output)-1);
+        $output .= "]";
+        echo $output;
+
+                                        /////////// POSTS ////////////////
     } else if ($_GET['url'] == "posts") {
 
         $token = $_COOKIE['SNID'];
-
         $userid = $db->query('SELECT user_id FROM login_tokens WHERE token=:token', array(':token'=>sha1($token)))[0]['user_id'];
 
-        $followingposts = $db->query('SELECT posts.id, posts.body, posts.posted_at, posts.likes, users.`username` 
+        $isLiking = "false";
+
+        $followingposts = $db->query('SELECT posts.id, posts.body, posts.posted_at, posts.postimg, posts.likes, users.`username` 
         FROM users, posts, followers 
-        WHERE posts.user_id = followers.user_id 
-        AND users.id = posts.user_id AND follower_id=:userid 
-        ORDER BY posts.likes DESC', array(':userid'=>$userid));
+        WHERE (posts.user_id = followers.user_id 
+        OR posts.user_id = :userid)
+        AND users.id = posts.user_id AND follower_id=:userid
+        ORDER BY posts.posted_at DESC', array(':userid'=>$userid), array(':userid'=>$userid));
 
         $response = "[";
 
         foreach($followingposts as $post) {
+
+            $commentnum = 0;
+            $comments = $db->query('SELECT id FROM comments WHERE post_id=:postid', array(':postid'=>$post['id']));
+            foreach($comments as $comment) {
+                $commentnum += 1;
+            }
 
             $response .= "{";
                 $response .= '"PostId": '.$post['id'].',';
                 $response .= '"PostBody": "'.$post['body'].'",';
                 $response .= '"PostedBy": "'.$post['username'].'",';
                 $response .= '"PostDate": "'.$post['posted_at'].'",';
-                $response .= '"Likes": '.$post['likes'].'';
+                $response .= '"PostImage": "'.$post['postimg'].'",';
+                $response .= '"Likes": '.$post['likes'].',';
+                $response .= '"Comments": '.$commentnum.',';
+                if ($db->query('SELECT user_id FROM post_likes WHERE post_id=:postid AND user_id=:userid', array('postid'=>$post['id'], ':userid'=>$userid))) {
+                    $isLiking = "true";
+                } else {
+                    $isLiking = "false";
+                }
+                $response .= '"isliking": '.$isLiking.'';
+            $response .= "},";
+
+        }
+        $response = substr($response, 0, strlen($response)-1);
+        $response .= "]";
+
+        echo $response;
+
+                                    ///////////// PROFILE POSTS /////////////
+
+    } else if ($_GET['url'] == "profileposts") {
+
+        $start = (int)$_GET['start'];
+        $userid = $db->query('SELECT id FROM users WHERE username=:username', array(':username'=>$_GET['username']))[0]['id'];
+
+        $isLiking = "false";
+
+        $followingposts = $db->query('SELECT posts.id, posts.body, posts.posted_at, posts.postimg, posts.likes, users.`username` 
+        FROM users, posts 
+        WHERE users.id = posts.user_id
+        AND users.id=:userid
+        ORDER BY posts.posted_at DESC
+        LIMIT 5
+        OFFSET '.$start.';', array(':userid'=>$userid));
+
+        $token = $_COOKIE['SNID'];
+        $likerId = $db->query('SELECT user_id FROM login_tokens WHERE token=:token', array(':token'=>sha1($token)))[0]['user_id'];
+
+        $response = "[";
+
+        foreach($followingposts as $post) {
+
+            $commentnum = 0;
+            $comments = $db->query('SELECT id FROM comments WHERE post_id=:postid', array(':postid'=>$post['id']));
+            foreach($comments as $comment) {
+                $commentnum += 1;
+            }
+
+            $response .= "{";
+                $response .= '"PostId": '.$post['id'].',';
+                $response .= '"PostBody": "'.$post['body'].'",';
+                $response .= '"PostedBy": "'.$post['username'].'",';
+                $response .= '"PostDate": "'.$post['posted_at'].'",';
+                $response .= '"PostImage": "'.$post['postimg'].'",';
+                $response .= '"Likes": '.$post['likes'].',';
+                $response .= '"Comments": '.$commentnum.',';
+                if ($db->query('SELECT user_id FROM post_likes WHERE post_id=:postid AND user_id=:userid', array('postid'=>$post['id'], ':userid'=>$likerId))) {
+                    $isLiking = "true";
+                } else {
+                    $isLiking = "false";
+                }
+                $response .= '"isliking": '.$isLiking.'';
             $response .= "},";
 
         }
@@ -45,7 +187,31 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
 } else if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
-    if ($_GET['url'] == "users") {
+
+                                ///////////////// MESSAGE ////////////////////
+    if ($_GET['url'] == "message") {
+
+        $token = $_COOKIE['SNID'];
+        $userid = $db->query('SELECT user_id FROM login_tokens WHERE token=:token', array(':token'=>sha1($token)))[0]['user_id'];
+
+        $postBody = file_get_contents("php://input");
+        $postBody = json_decode($postBody);
+
+        $body = $postBody->body;
+        $receiver = $postBody->receiver;
+
+        if (strlen($body) > 300) {
+            echo "{ 'Error': 'Message too long!' }";
+        }
+
+        $db->query("INSERT INTO messages VALUES ('', :body, :sender, :receiver, '0')", array(':body'=>$body, ':sender'=>$userid, ':receiver'=>$receiver));
+
+        echo "{ 'Success': 'Message Sent' }";
+        print_r($postBody);
+
+
+                                //////////////// USERS //////////////////
+    } else if ($_GET['url'] == "users") {
         $postBody = file_get_contents("php://input");
         $postBody = json_decode($postBody);
 
@@ -100,7 +266,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
             http_response_code(409);
         }
     }
-
+                                    //////////////// AUTH ////////////////////
     if ($_GET['url'] == "auth") {
         $postBody = file_get_contents("php://input");
         $postBody = json_decode($postBody);
@@ -132,23 +298,28 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         $postId = $_GET['id'];
         $token = $_COOKIE['SNID'];
         $likerId = $db->query('SELECT user_id FROM login_tokens WHERE token=:token', array(':token'=>sha1($token)))[0]['user_id'];
+        $isLiking = "false";
 
         if (!$db->query('SELECT user_id FROM post_likes WHERE post_id=:postid AND user_id=:userid', array('postid'=>$postId, ':userid'=>$likerId))) {
             $db->query('UPDATE posts SET likes=likes+1 WHERE id=:postid', array(':postid'=>$postId));
             $db->query('INSERT INTO post_likes VALUES (\'\', :postid, :userid)', array(':postid'=>$postId, ':userid'=>$likerId));
+            $isLiking = "true";
         
             // Notify::createNotification("", $postId);
         } else {
             $db->query('UPDATE posts SET likes=likes-1 WHERE id=:postid', array(':postid'=>$postId));
             $db->query('DELETE FROM post_likes WHERE post_id=:postid AND user_id=:userid', array(':postid'=>$postId, ':userid'=>$likerId));
+            $isLiking = "false";
         }
 
         echo "{";
         echo '"Likes":';
         echo $db->query('SELECT likes from posts WHERE id=:postid', array(':postid'=>$postId))[0]['likes'];
+        echo ', "isliking":';
+        echo $isLiking;
         echo "}";
     }
-    
+
 } else if ($_SERVER['REQUEST_METHOD'] == "DELETE") {
 
     if ($_GET['url'] == "auth") {

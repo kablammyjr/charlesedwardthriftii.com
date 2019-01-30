@@ -27,7 +27,7 @@ if (isset($_GET['result'])) {
 
     $users = DB::query('SELECT users.username FROM users WHERE users.username LIKE :username '.$whereclause.'', $paramsarray);
 
-    echo "<div class='container'>";
+    echo "<div class='container text-success'>";
 
     echo "<h1>Search Results</h1><hr />";
     echo "<h3>People</h3><hr />";
@@ -37,11 +37,8 @@ if (isset($_GET['result'])) {
     }
 
     foreach($users as $user) {
-        echo "<div id='userresult'><a href='/profile?username=".$user['username']."'>".$user['username']."</a></div><hr />";
+        echo "<div id='userresult'><a class='text-primary' href='/profile?username=".$user['username']."'>".$user['username']."</a></div><hr />";
     }
-
-
-
 
     $paramsarray = array(':body'=>'%'.$_GET['result'].'%');
 
@@ -62,7 +59,7 @@ if (isset($_GET['result'])) {
     }
 
     foreach($posts as $post) {
-        echo "<div id='postresult'>".htmlspecialchars($post['body'])."</div><hr />";
+        echo "<div class='text-info' id='postresult'>".htmlspecialchars($post['body'])."</div><hr />";
     }
 } else {
     $ps = new PageSwitch();
